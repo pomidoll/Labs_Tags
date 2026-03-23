@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>일레븐랩스 감정 태그 (by PomiDoll)</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;font-family:-apple-system,sans-serif;overflow:hidden;background:#e8e8ec;}
+
+.app{display:flex;flex-direction:column;height:100dvh;}
+
+/* 헤더 */
+.hd{flex-shrink:0;display:flex;align-items:center;justify-content:center;background:#eeeef2;border-bottom:1px solid rgba(255,255,255,0.8);box-shadow:0 2px 0 rgba(255,255,255,0.6);padding:14px 16px;}
+.hd h1{font-size:15px;font-weight:800;color:#5a5a7a;}.hd h1 span{color:#e06880;}
+
+/* 탭 */
+.tabs{flex-shrink:0;display:flex;padding:10px 12px 0;gap:6px;background:#e8e8ec;}
+.tab{flex:1;padding:9px 4px;text-align:center;font-size:11px;font-weight:800;color:rgba(90,90,120,0.45);cursor:pointer;border-radius:50px;transition:all 0.2s;background:#e8e8ec;box-shadow:3px 3px 7px rgba(180,180,200,0.5),-3px -3px 7px rgba(255,255,255,0.8);}
+.tab.on-emo{background:#f5a0b0;color:#fff;box-shadow:3px 3px 8px rgba(220,130,150,0.5),-2px -2px 5px rgba(255,255,255,0.6);}
+.tab.on-snd{background:#80ccd8;color:#fff;box-shadow:3px 3px 8px rgba(100,180,200,0.5),-2px -2px 5px rgba(255,255,255,0.6);}
+.tab.on-mood{background:#88cc99;color:#fff;box-shadow:3px 3px 8px rgba(100,180,130,0.5),-2px -2px 5px rgba(255,255,255,0.6);}
+.tab.on-spc{background:#b090d8;color:#fff;box-shadow:3px 3px 8px rgba(150,120,200,0.5),-2px -2px 5px rgba(255,255,255,0.6);}
+
+/* 태그 패널 */
+.panels{flex-shrink:0;overflow-y:auto;-webkit-overflow-scrolling:touch;max-height:38vh;}
+.panel{display:none;padding:10px 12px;}
+.panel.show{display:block;}
+.cat-emo{background:#fff5f7;}.cat-snd{background:#e7f5ff;}.cat-mood{background:#ebfbee;}.cat-spc{background:#f8f0fc;}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+
+.btn{background:#e8e8ec;border-radius:14px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;border:none;cursor:pointer;box-shadow:4px 4px 8px rgba(180,180,200,0.55),-3px -3px 6px rgba(255,255,255,0.9);transition:all 0.15s;position:relative;overflow:hidden;}
+.btn::after{content:'';position:absolute;top:2px;left:6px;right:6px;height:35%;background:linear-gradient(180deg,rgba(255,255,255,0.55),transparent);border-radius:50%;pointer-events:none;}
+.btn.flash{box-shadow:inset 3px 3px 6px rgba(180,180,200,0.5),inset -2px -2px 5px rgba(255,255,255,0.7);transform:scale(0.93);}
+.emo .e{color:#e06880;}.emo.flash{background:#fcd0d8;}
+.snd .e{color:#4aaac0;}.snd.flash{background:#c0e8f0;}
+.mood .e{color:#40a860;}.mood.flash{background:#c0e8cc;}
+.spc .e{color:#8060c0;}.spc.flash{background:#d8c8f0;}
+.e{font-weight:800;font-size:11px;position:relative;z-index:1;}
+.k{font-size:9px;color:rgba(90,90,120,0.5);margin-top:2px;position:relative;z-index:1;}
+
+/* 에디터 영역 */
+.rt{flex:1;display:flex;flex-direction:column;padding:10px 12px;gap:8px;overflow:hidden;min-height:0;}
+
+/* 저장 목록 행 */
+.load-row{display:flex;gap:7px;flex-shrink:0;}
+#load-select{flex:1;background:#e8e8ec;border:none;border-radius:50px;padding:10px 14px;font-size:12px;font-weight:600;color:rgba(90,90,120,0.7);cursor:pointer;box-shadow:inset 3px 3px 6px rgba(180,180,200,0.45),inset -2px -2px 5px rgba(255,255,255,0.8);-webkit-appearance:none;outline:none;}
+#load-btn{background:#b0c8f0;color:#fff;border:none;padding:10px 12px;border-radius:50px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:3px 3px 7px rgba(140,170,220,0.5),-2px -2px 5px rgba(255,255,255,0.7);-webkit-appearance:none;}
+#del-btn{background:#e8e8ec;color:rgba(200,80,80,0.65);border:none;padding:10px 12px;border-radius:50px;font-size:12px;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:3px 3px 7px rgba(180,180,200,0.5),-2px -2px 5px rgba(255,255,255,0.9);-webkit-appearance:none;}
+#del-btn:active{color:#e03030;box-shadow:inset 2px 2px 5px rgba(180,180,200,0.4),inset -1px -1px 3px rgba(255,255,255,0.7);}
+
+/* 버튼 행 */
+.btns{display:flex;gap:8px;flex-shrink:0;}
+#copy{flex:2;background:#f5a0b0;color:#fff;border:none;padding:14px;border-radius:50px;font-size:15px;font-weight:800;cursor:pointer;font-family:-apple-system,sans-serif;box-shadow:4px 4px 10px rgba(220,130,150,0.5),-3px -3px 7px rgba(255,255,255,0.7),inset 0 2px 0 rgba(255,255,255,0.3);transition:all 0.15s;-webkit-appearance:none;position:relative;overflow:hidden;}
+#copy::after{content:'';position:absolute;top:4px;left:15%;right:15%;height:35%;background:linear-gradient(180deg,rgba(255,255,255,0.4),transparent);border-radius:50%;pointer-events:none;}
+#copy:active{transform:scale(0.96);}
+#copy.ok{background:#88cc99;}
+#save-btn{flex:2;background:#b0c8f0;color:#fff;border:none;padding:14px;border-radius:50px;font-size:15px;font-weight:800;cursor:pointer;font-family:-apple-system,sans-serif;box-shadow:4px 4px 10px rgba(140,170,220,0.5),-3px -3px 7px rgba(255,255,255,0.7),inset 0 2px 0 rgba(255,255,255,0.3);transition:all 0.15s;-webkit-appearance:none;position:relative;overflow:hidden;}
+#save-btn::after{content:'';position:absolute;top:4px;left:15%;right:15%;height:35%;background:linear-gradient(180deg,rgba(255,255,255,0.4),transparent);border-radius:50%;pointer-events:none;}
+#save-btn:active{transform:scale(0.96);}
+#save-btn.saved{background:#88cc99;}
+#clear{flex:1;background:#e8e8ec;color:rgba(90,90,120,0.65);border:none;padding:14px 8px;border-radius:50px;font-size:13px;font-weight:700;cursor:pointer;font-family:-apple-system,sans-serif;white-space:nowrap;box-shadow:4px 4px 8px rgba(180,180,200,0.5),-3px -3px 6px rgba(255,255,255,0.9);transition:all 0.15s;-webkit-appearance:none;}
+#clear:active{transform:scale(0.96);color:#e06880;}
+
+textarea{flex:1;width:100%;background:#e8e8ec;border:none;border-radius:18px;padding:14px 16px;font-size:16px;line-height:1.75;resize:none;outline:none;font-family:-apple-system,sans-serif;color:#4a4a6a;box-shadow:inset 4px 4px 8px rgba(180,180,200,0.5),inset -3px -3px 6px rgba(255,255,255,0.85);-webkit-appearance:none;min-height:0;}
+textarea::placeholder{color:rgba(90,90,120,0.3);}
+textarea:focus{box-shadow:inset 4px 4px 8px rgba(180,180,200,0.55),inset -3px -3px 6px rgba(255,255,255,0.9),0 0 0 2px rgba(224,104,128,0.2);}
+
+/* 모달 */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(180,180,200,0.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:9999;align-items:center;justify-content:center;}
+.modal-bg.show{display:flex;}
+.modal{background:#e8e8ec;border-radius:24px;padding:24px 20px;width:280px;box-shadow:8px 8px 20px rgba(160,160,200,0.5),-5px -5px 14px rgba(255,255,255,0.9);display:flex;flex-direction:column;gap:12px;}
+.modal-title{font-size:15px;font-weight:800;color:#5a5a7a;text-align:center;}
+#title-input{background:#e8e8ec;border:none;border-radius:50px;padding:12px 16px;font-size:15px;font-weight:600;color:#4a4a6a;box-shadow:inset 4px 4px 8px rgba(180,180,200,0.45),inset -3px -3px 6px rgba(255,255,255,0.85);outline:none;-webkit-appearance:none;font-family:-apple-system,sans-serif;width:100%;}
+.modal-btns{display:flex;gap:10px;}
+#modal-save{flex:1;background:#f5a0b0;color:#fff;border:none;padding:13px;border-radius:50px;font-size:14px;font-weight:800;cursor:pointer;font-family:-apple-system,sans-serif;box-shadow:4px 4px 8px rgba(220,130,150,0.45),-2px -2px 5px rgba(255,255,255,0.7);-webkit-appearance:none;}
+#modal-cancel{flex:1;background:#e8e8ec;color:rgba(90,90,120,0.6);border:none;padding:13px;border-radius:50px;font-size:14px;font-weight:700;cursor:pointer;font-family:-apple-system,sans-serif;box-shadow:4px 4px 8px rgba(180,180,200,0.45),-3px -3px 6px rgba(255,255,255,0.85);-webkit-appearance:none;}
+
+#toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0.85);background:#e8e8ec;color:#5a5a7a;padding:20px 36px;border-radius:26px;font-size:17px;font-weight:800;text-align:center;line-height:1.6;opacity:0;pointer-events:none;transition:opacity 0.22s,transform 0.22s;z-index:9998;box-shadow:8px 8px 20px rgba(180,180,200,0.5),-5px -5px 14px rgba(255,255,255,0.9);}
+#toast.show{opacity:1;transform:translate(-50%,-50%) scale(1);}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="hd"><h1>일레븐랩스 감정 태그 <span>by PomiDoll</span></h1></div>
+  <div class="tabs">
+    <div class="tab on-emo" data-t="emo">감정</div>
+    <div class="tab" data-t="snd">소리</div>
+    <div class="tab" data-t="mood">무드</div>
+    <div class="tab" data-t="spc">특수</div>
+  </div>
+  <div class="panels">
+    <div class="panel cat-emo show" id="p-emo"><div class="grid">
+      <button class="btn emo" data-tag="[happy]"><span class="e">HAPPY</span><span class="k">기쁨/밝음</span></button>
+      <button class="btn emo" data-tag="[sad]"><span class="e">SAD</span><span class="k">슬픔/우울</span></button>
+      <button class="btn emo" data-tag="[angry]"><span class="e">ANGRY</span><span class="k">화남/분노</span></button>
+      <button class="btn emo" data-tag="[excited]"><span class="e">EXCITED</span><span class="k">신남/열정</span></button>
+      <button class="btn emo" data-tag="[scared]"><span class="e">SCARED</span><span class="k">공포/긴장</span></button>
+      <button class="btn emo" data-tag="[terrified]"><span class="e">TERRIFIED</span><span class="k">겁에 질린</span></button>
+      <button class="btn emo" data-tag="[surprised]"><span class="e">SURPRISED</span><span class="k">깜짝 놀람</span></button>
+      <button class="btn emo" data-tag="[disgusted]"><span class="e">DISGUSTED</span><span class="k">역겨움</span></button>
+      <button class="btn emo" data-tag="[relieved]"><span class="e">RELIEVED</span><span class="k">안도/다행</span></button>
+    </div></div>
+    <div class="panel cat-snd" id="p-snd"><div class="grid">
+      <button class="btn snd" data-tag="[whispering]"><span class="e">WHISPERING</span><span class="k">속삭임</span></button>
+      <button class="btn snd" data-tag="[shouting]"><span class="e">SHOUTING</span><span class="k">크게 외침</span></button>
+      <button class="btn snd" data-tag="[laughing]"><span class="e">LAUGHING</span><span class="k">웃음소리</span></button>
+      <button class="btn snd" data-tag="[crying]"><span class="e">CRYING</span><span class="k">울먹임</span></button>
+      <button class="btn snd" data-tag="[panting]"><span class="e">PANTING</span><span class="k">숨 가쁨</span></button>
+      <button class="btn snd" data-tag="[mumbling]"><span class="e">MUMBLING</span><span class="k">중얼거림</span></button>
+      <button class="btn snd" data-tag="[sighing]"><span class="e">SIGHING</span><span class="k">한숨 쉬며</span></button>
+      <button class="btn snd" data-tag="[breathing heavily]"><span class="e">BREATHING HEAVILY</span><span class="k">거친 숨</span></button>
+      <button class="btn snd" data-tag="[trembling voice]"><span class="e">TREMBLING VOICE</span><span class="k">떨리는 목소리</span></button>
+    </div></div>
+    <div class="panel cat-mood" id="p-mood"><div class="grid">
+      <button class="btn mood" data-tag="[curious]"><span class="e">CURIOUS</span><span class="k">호기심</span></button>
+      <button class="btn mood" data-tag="[sarcastic]"><span class="e">SARCASTIC</span><span class="k">비꼼/냉소</span></button>
+      <button class="btn mood" data-tag="[serious]"><span class="e">SERIOUS</span><span class="k">진지함</span></button>
+      <button class="btn mood" data-tag="[warm]"><span class="e">WARM</span><span class="k">다정함</span></button>
+      <button class="btn mood" data-tag="[hesitant]"><span class="e">HESITANT</span><span class="k">망설임</span></button>
+      <button class="btn mood" data-tag="[ironic]"><span class="e">IRONIC</span><span class="k">반어법</span></button>
+      <button class="btn mood" data-tag="[confident]"><span class="e">CONFIDENT</span><span class="k">자신감</span></button>
+      <button class="btn mood" data-tag="[melancholic]"><span class="e">MELANCHOLIC</span><span class="k">쓸쓸함</span></button>
+      <button class="btn mood" data-tag="[playful]"><span class="e">PLAYFUL</span><span class="k">장난스러움</span></button>
+      <button class="btn mood" data-tag="[mysterious]"><span class="e">MYSTERIOUS</span><span class="k">신비로운</span></button>
+    </div></div>
+    <div class="panel cat-spc" id="p-spc"><div class="grid">
+      <button class="btn spc" data-tag="[gasp]"><span class="e">GASP</span><span class="k">헉! 놀람</span></button>
+      <button class="btn spc" data-tag="[sigh]"><span class="e">SIGH</span><span class="k">깊은 한숨</span></button>
+      <button class="btn spc" data-tag="[pause]"><span class="e">PAUSE</span><span class="k">잠시 멈춤</span></button>
+      <button class="btn spc" data-tag="[monotone]"><span class="e">MONOTONE</span><span class="k">무미건조</span></button>
+      <button class="btn spc" data-tag="[clearing throat]"><span class="e">CLEARING THROAT</span><span class="k">목 가다듬기</span></button>
+      <button class="btn spc" data-tag="[nervous laugh]"><span class="e">NERVOUS LAUGH</span><span class="k">어색한 웃음</span></button>
+      <button class="btn spc" data-tag="[long pause]"><span class="e">LONG PAUSE</span><span class="k">긴 침묵</span></button>
+    </div></div>
+  </div>
+
+  <div class="rt">
+    <div class="load-row">
+      <select id="load-select"><option value="">📂 저장된 대본 선택</option></select>
+      <button id="load-btn">불러오기</button>
+      <button id="del-btn">🗑 삭제</button>
+    </div>
+    <div class="btns">
+      <button id="copy">복사</button>
+      <button id="save-btn">저장</button>
+      <button id="clear">초기화</button>
+    </div>
+    <textarea id="ed" placeholder="대본을 작성하세요. 위 버튼을 누르면 태그가 삽입됩니다."></textarea>
+  </div>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-title">대본 제목을 입력하세요</div>
+    <input type="text" id="title-input" placeholder="예: 1화 오프닝" maxlength="30"/>
+    <div class="modal-btns">
+      <button id="modal-save">저장</button>
+      <button id="modal-cancel">취소</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+var ed=document.getElementById('ed');
+var copyBtn=document.getElementById('copy');
+var saveBtn=document.getElementById('save-btn');
+var loadSel=document.getElementById('load-select');
+var loadBtn=document.getElementById('load-btn');
+var delBtn=document.getElementById('del-btn');
+var modalBg=document.getElementById('modal-bg');
+var titleInput=document.getElementById('title-input');
+var toast=document.getElementById('toast');
+var toastTm,copyTm,saveTm;
+
+document.querySelectorAll('.btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var tag=b.getAttribute('data-tag'),s=ed.selectionStart,e=ed.selectionEnd;
+    ed.value=ed.value.slice(0,s)+tag+' '+ed.value.slice(e);
+    ed.focus();ed.setSelectionRange(s+tag.length+1,s+tag.length+1);
+    b.classList.add('flash');setTimeout(function(){b.classList.remove('flash');},300);
+  });
+});
+
+document.querySelectorAll('.tab').forEach(function(t){
+  t.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.className='tab';});
+    t.className='tab on-'+t.getAttribute('data-t');
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('show');});
+    document.getElementById('p-'+t.getAttribute('data-t')).classList.add('show');
+  });
+});
+
+function showToast(msg){clearTimeout(toastTm);toast.innerHTML=msg;toast.classList.add('show');toastTm=setTimeout(function(){toast.classList.remove('show');},2200);}
+
+copyBtn.addEventListener('click',function(){
+  var txt=ed.value;if(!txt.trim())return;
+  function done(){
+    clearTimeout(copyTm);copyBtn.textContent='✓ 복사됨!';copyBtn.classList.add('ok');
+    copyTm=setTimeout(function(){copyBtn.textContent='복사';copyBtn.classList.remove('ok');},2500);
+    showToast('🌸 복사 완료!<br><span style="font-size:13px;font-weight:600;opacity:0.7;">일레븐랩스에 붙여넣기 하세요</span>');
+  }
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done).catch(function(){fb(txt,done);});}
+  else{fb(txt,done);}
+});
+function fb(txt,cb){var ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;top:0;left:0;opacity:0;';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);cb();}
+
+document.getElementById('clear').addEventListener('click',function(){ed.value='';ed.focus();});
+
+function getScripts(){try{return JSON.parse(localStorage.getItem('pomi_scripts')||'[]');}catch(e){return[];}}
+function saveScripts(arr){localStorage.setItem('pomi_scripts',JSON.stringify(arr));}
+function renderList(){
+  var scripts=getScripts();
+  loadSel.innerHTML='<option value="">📂 저장된 대본 ('+scripts.length+'개)</option>';
+  scripts.forEach(function(s,i){var opt=document.createElement('option');opt.value=i;opt.textContent='📄 '+s.title;loadSel.appendChild(opt);});
+}
+renderList();
+
+saveBtn.addEventListener('click',function(){
+  if(!ed.value.trim()){showToast('⚠️ 저장할 내용이 없어요!');return;}
+  titleInput.value='';modalBg.classList.add('show');
+  setTimeout(function(){titleInput.focus();},100);
+});
+document.getElementById('modal-save').addEventListener('click',function(){
+  var title=titleInput.value.trim()||'대본 '+(getScripts().length+1);
+  var scripts=getScripts();
+  scripts.unshift({title:title,content:ed.value});
+  saveScripts(scripts);renderList();
+  modalBg.classList.remove('show');
+  clearTimeout(saveTm);saveBtn.textContent='✓ 저장됨!';saveBtn.classList.add('saved');
+  saveTm=setTimeout(function(){saveBtn.textContent='저장';saveBtn.classList.remove('saved');},2500);
+  showToast('💾 저장됐어요!<br><span style="font-size:13px;font-weight:600;opacity:0.7;">'+title+'</span>');
+});
+document.getElementById('modal-cancel').addEventListener('click',function(){modalBg.classList.remove('show');});
+titleInput.addEventListener('keydown',function(e){
+  if(e.key==='Enter')document.getElementById('modal-save').click();
+  if(e.key==='Escape')modalBg.classList.remove('show');
+});
+
+loadBtn.addEventListener('click',function(){
+  if(loadSel.value===''){showToast('⚠️ 불러올 대본을 먼저 선택하세요!');return;}
+  var s=getScripts()[parseInt(loadSel.value)];
+  if(s){ed.value=s.content;ed.focus();showToast('📂 불러왔어요!<br><span style="font-size:13px;font-weight:600;opacity:0.7;">'+s.title+'</span>');}
+});
+
+delBtn.addEventListener('click',function(){
+  if(loadSel.value===''){showToast('⚠️ 삭제할 대본을 먼저 선택하세요!');return;}
+  var scripts=getScripts();
+  var idx=parseInt(loadSel.value);
+  var title=scripts[idx].title;
+  scripts.splice(idx,1);saveScripts(scripts);renderList();
+  showToast('🗑 삭제됐어요!<br><span style="font-size:13px;font-weight:600;opacity:0.7;">'+title+'</span>');
+});
+</script>
+</body>
+</html>
